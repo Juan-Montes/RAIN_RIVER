@@ -20,6 +20,7 @@ uint8_t nwkSKey[] = { 0x15, 0xb1, 0xd0, 0xef, 0xa4, 0x63, 0xdf, 0xbe, 0x3d, 0x11
 uint8_t appSKey[] = { 0xd7, 0x2c, 0x78, 0x75, 0x8c, 0xdc, 0xca, 0xbf, 0x55, 0xee, 0x4a, 0x77, 0x8d, 0x16, 0xef,0x67 };
 uint32_t devAddr =  ( uint32_t )0x007e6ae1;
 
+
 /*LoraWan channelsmask, default channels 0-7*/ 
 uint16_t userChannelsMask[6]={ 0xFF00,0x0000,0x0000,0x0000,0x0000,0x0000 };
 
@@ -30,7 +31,7 @@ LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
 DeviceClass_t  loraWanClass = LORAWAN_CLASS;
 
 /*the application data transmission duty cycle.  value in [ms].*/
-uint32_t appTxDutyCycle = 5000;
+uint32_t appTxDutyCycle = 2000;
 
 /*OTAA or ABP*/
 bool overTheAirActivation = LORAWAN_NETMODE;
@@ -78,7 +79,7 @@ uint8_t confirmedNbTrials = 4;
 //#define CM_TO_INCH 0.393701
 
 long duration;
-float distanceCm;
+int distanceCm;
 
 static void prepareTxFrame( uint8_t port )
 {
@@ -128,50 +129,50 @@ void setup() {
 
 void loop()
 {
-	switch( deviceState )
-	{
-		case DEVICE_STATE_INIT:
-		{
+  switch( deviceState )
+  {
+    case DEVICE_STATE_INIT:
+    {
 #if(LORAWAN_DEVEUI_AUTO)
-			LoRaWAN.generateDeveuiByChipID();
+      LoRaWAN.generateDeveuiByChipID();
 #endif
 #if(AT_SUPPORT)
-			getDevParam();
+      getDevParam();
 #endif
-			printDevParam();
-			LoRaWAN.init(loraWanClass,loraWanRegion);
-			deviceState = DEVICE_STATE_JOIN;
-			break;
-		}
-		case DEVICE_STATE_JOIN:
-		{
-			LoRaWAN.join();
-			break;
-		}
-		case DEVICE_STATE_SEND:
-		{
-			prepareTxFrame( appPort );
-			LoRaWAN.send();
-			deviceState = DEVICE_STATE_CYCLE;
-			break;
-		}
-		case DEVICE_STATE_CYCLE:
-		{
-			// Schedule next packet transmission
-			txDutyCycleTime = appTxDutyCycle + randr( 0, APP_TX_DUTYCYCLE_RND );
-			LoRaWAN.cycle(txDutyCycleTime);
-			deviceState = DEVICE_STATE_SLEEP;
-			break;
-		}
-		case DEVICE_STATE_SLEEP:
-		{
-			LoRaWAN.sleep();
-			break;
-		}
-		default:
-		{
-			deviceState = DEVICE_STATE_INIT;
-			break;
-		}
-	}
+      printDevParam();
+      LoRaWAN.init(loraWanClass,loraWanRegion);
+      deviceState = DEVICE_STATE_JOIN;
+      break;
+    }
+    case DEVICE_STATE_JOIN:
+    {
+      LoRaWAN.join();
+      break;
+    }
+    case DEVICE_STATE_SEND:
+    {
+      prepareTxFrame( appPort );
+      LoRaWAN.send();
+      deviceState = DEVICE_STATE_CYCLE;
+      break;
+    }
+    case DEVICE_STATE_CYCLE:
+    {
+      // Schedule next packet transmission
+      txDutyCycleTime = appTxDutyCycle + randr( 0, APP_TX_DUTYCYCLE_RND );
+      LoRaWAN.cycle(txDutyCycleTime);
+      deviceState = DEVICE_STATE_SLEEP;
+      break;
+    }
+    case DEVICE_STATE_SLEEP:
+    {
+      LoRaWAN.sleep();
+      break;
+    }
+    default:
+    {
+      deviceState = DEVICE_STATE_INIT;
+      break;
+    }
+  }
 }
